@@ -34,14 +34,14 @@
   ],
   "author": {
     "name": "Anurag Kalita",
-    "url": "https://github.com/anurag-kalita"
+    "url": "https://github.com/Autom8Minds"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/anurag-kalita/seo-mcp"
+    "url": "https://github.com/Autom8Minds/seo-mcp"
   },
-  "homepage": "https://github.com/anurag-kalita/seo-mcp",
+  "homepage": "https://github.com/Autom8Minds/seo-mcp",
   "engines": {
     "node": ">=18.0.0"
   },

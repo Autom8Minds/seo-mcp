@@ -3,7 +3,7 @@ export const DEFAULTS = {
   httpTimeout: 15000,
 
   /** User agent string for requests */
-  userAgent: 'SEO-MCP-Bot/1.0 (+https://github.com/anurag-kalita/seo-mcp)',
+  userAgent: 'SEO-MCP-Bot/1.0 (+https://github.com/Autom8Minds/seo-mcp)',
 
   /** Maximum redirects to follow */
   maxRedirects: 10,

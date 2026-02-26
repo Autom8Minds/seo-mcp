@@ -39,13 +39,13 @@ Add to your `claude_desktop_config.json`:
 ### Docker
 
 ```bash
-docker run -i ghcr.io/anurag-kalita/seo-mcp
+docker run -i ghcr.io/Autom8Minds/seo-mcp
 ```
 
 ### From Source
 
 ```bash
-git clone https://github.com/anurag-kalita/seo-mcp.git
+git clone https://github.com/Autom8Minds/seo-mcp.git
 cd seo-mcp
 npm install
 npm run build
@@ -128,7 +128,7 @@ Once connected, ask Claude:
 
 ## Companion: seo-skills
 
-For maximum effectiveness, pair this MCP server with [seo-skills](https://github.com/anurag-kalita/seo-skills) - 7 Claude Code skills that teach SEO best practices, content strategy, schema markup, and more.
+For maximum effectiveness, pair this MCP server with [seo-skills](https://github.com/Autom8Minds/seo-skills) - 7 Claude Code skills that teach SEO best practices, content strategy, schema markup, and more.
 
 ## Development
 
