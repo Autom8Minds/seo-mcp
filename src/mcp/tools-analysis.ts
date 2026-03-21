@@ -320,4 +320,27 @@ export const analysisTools: Tool[] = [
       openWorldHint: true,
     },
   },
+
+  // ── audit_accessibility ─────────────────────────────────────────────
+  {
+    name: 'audit_accessibility',
+    description:
+      'Run a lightweight WCAG accessibility audit on a page using Cheerio (no browser needed). Checks: lang attribute, form labels, empty buttons/links, image alt text, heading hierarchy, skip navigation, ARIA landmarks, document title, and tabindex issues. Returns per-check results and an overall score.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        url: {
+          type: 'string',
+          description: 'The fully-qualified URL to audit for accessibility.',
+        },
+      },
+      required: ['url'],
+      additionalProperties: false,
+    },
+    annotations: {
+      readOnlyHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
+  },
 ];

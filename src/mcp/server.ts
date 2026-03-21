@@ -38,12 +38,16 @@ import {
   handleAuditSecurityHeaders,
   handleAnalyzeUrlStructure,
   handleValidateHreflang,
+  handleAuditAccessibility,
 } from './handlers-analysis.js';
 
 import {
   handleCrawlSite,
   handleCrawlStatus,
   handleCrawlResults,
+  handleDetectOrphanPages,
+  handleCompareCrawls,
+  handleListCrawls,
 } from './handlers-crawler.js';
 
 import {
@@ -122,11 +126,15 @@ const handlers: Record<string, HandlerFn> = {
   audit_security_headers: handleAuditSecurityHeaders,
   analyze_url_structure: handleAnalyzeUrlStructure,
   validate_hreflang: handleValidateHreflang,
+  audit_accessibility: handleAuditAccessibility,
 
   // Crawler
   crawl_site: handleCrawlSite,
   crawl_status: handleCrawlStatus,
   crawl_results: handleCrawlResults,
+  detect_orphan_pages: handleDetectOrphanPages,
+  compare_crawls: handleCompareCrawls,
+  list_crawls: handleListCrawls,
 };
 
 // ── Server factory ──────────────────────────────────────────────────────

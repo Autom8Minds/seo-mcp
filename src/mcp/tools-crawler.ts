@@ -1,8 +1,8 @@
 /**
  * Crawler tool definitions for the SEO MCP server.
  *
- * Three tools implementing the async job pattern:
- * crawl_site (start), crawl_status (poll), crawl_results (retrieve).
+ * Six tools: async crawl pattern (start/poll/results),
+ * orphan page detection, crawl comparison, and crawl listing.
  */
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
@@ -102,7 +102,7 @@ export const crawlerTools: Tool[] = [
         },
         filter: {
           type: 'string',
-          enum: ['all', 'issues', 'duplicates', 'redirects', 'pages', 'summary'],
+          enum: ['all', 'issues', 'duplicates', 'near-duplicates', 'redirects', 'orphans', 'pages', 'summary'],
           description: 'Filter results to a specific category. Defaults to "summary".',
           default: 'summary',
         },
@@ -118,6 +118,77 @@ export const crawlerTools: Tool[] = [
         },
       },
       required: ['crawlId'],
+      additionalProperties: false,
+    },
+    annotations: {
+      readOnlyHint: true,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
+  },
+
+  // ── detect_orphan_pages ─────────────────────────────────────────────
+  {
+    name: 'detect_orphan_pages',
+    description:
+      'Cross-reference a completed crawl with a sitemap to find orphan pages (in sitemap but not linked) and unlisted pages (found during crawl but not in sitemap).',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        crawlId: {
+          type: 'string',
+          description: 'The crawl ID to check.',
+        },
+        sitemapUrl: {
+          type: 'string',
+          description: 'URL of the XML sitemap to cross-reference against.',
+        },
+      },
+      required: ['crawlId', 'sitemapUrl'],
+      additionalProperties: false,
+    },
+    annotations: {
+      readOnlyHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
+  },
+
+  // ── compare_crawls ──────────────────────────────────────────────────
+  {
+    name: 'compare_crawls',
+    description:
+      'Diff two crawl sessions to track SEO changes over time. Shows new/removed pages, changed titles/descriptions/H1s, status code changes, new issues, and resolved issues.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        crawlId1: {
+          type: 'string',
+          description: 'The older crawl ID (baseline).',
+        },
+        crawlId2: {
+          type: 'string',
+          description: 'The newer crawl ID to compare against.',
+        },
+      },
+      required: ['crawlId1', 'crawlId2'],
+      additionalProperties: false,
+    },
+    annotations: {
+      readOnlyHint: true,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
+  },
+
+  // ── list_crawls ─────────────────────────────────────────────────────
+  {
+    name: 'list_crawls',
+    description:
+      'List all crawl sessions (in-memory and saved to disk). Shows crawl ID, domain, state, pages crawled, and date for each.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {},
       additionalProperties: false,
     },
     annotations: {

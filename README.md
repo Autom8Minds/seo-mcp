@@ -1,8 +1,8 @@
 # seo-mcp
 
-An open-source MCP (Model Context Protocol) server that turns Claude into a full SEO consultant. Provides 25 tools for page analysis, security auditing, site crawling, Core Web Vitals, structured data validation, keyword research, backlink analysis, and more.
+An open-source MCP (Model Context Protocol) server that turns Claude into a full SEO consultant. Provides 29 tools for page analysis, accessibility auditing, site crawling, Core Web Vitals, structured data validation, keyword research, backlink analysis, and more.
 
-**19 of 25 tools work with zero API keys** - just install and start analyzing.
+**23 of 29 tools work with zero API keys** - just install and start analyzing.
 
 ## Quick Start
 
@@ -54,7 +54,7 @@ npm start
 
 ## Tools
 
-### Category A: Page Analysis (10 tools, no API key needed)
+### Category A: Page Analysis (11 tools, no API key needed)
 
 | Tool | Description |
 |------|-------------|
@@ -68,6 +68,7 @@ npm start
 | `audit_security_headers` | HSTS, CSP, X-Frame-Options, mixed content detection |
 | `analyze_url_structure` | URL length, depth, uppercase, underscores, parameters |
 | `validate_hreflang` | Hreflang language codes, x-default, return link verification |
+| `audit_accessibility` | WCAG checks: lang, form labels, empty buttons/links, headings, ARIA, skip nav |
 
 ### Category B: Performance (2 tools, free API)
 
@@ -101,13 +102,16 @@ npm start
 | `generate_robots_txt` | Generate robots.txt from config |
 | `generate_meta_suggestions` | Optimized title/meta/OG suggestions |
 
-### Category F: Site Crawler (3 tools, no API key needed)
+### Category F: Site Crawler (6 tools, no API key needed)
 
 | Tool | Description |
 |------|-------------|
 | `crawl_site` | Start a BFS site crawl — returns crawl ID immediately |
 | `crawl_status` | Check crawl progress (pages crawled/queued/errored) |
-| `crawl_results` | Retrieve aggregated issues, duplicates, redirect chains, per-page data |
+| `crawl_results` | Aggregated issues, duplicates, near-duplicates, redirect chains, orphan pages |
+| `detect_orphan_pages` | Cross-reference crawl with sitemap to find orphan/unlisted pages |
+| `compare_crawls` | Diff two crawls: new/removed pages, changed titles, new/resolved issues |
+| `list_crawls` | List all crawl sessions (in-memory and saved to disk) |
 
 ## API Keys
 

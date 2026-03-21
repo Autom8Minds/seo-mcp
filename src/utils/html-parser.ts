@@ -75,6 +75,43 @@ export function countWords(text: string): number {
     .filter((w) => w.length > 0).length;
 }
 
+export interface PaginationLinks {
+  next: string | null;
+  prev: string | null;
+  issues: string[];
+}
+
+export function extractPagination($: CheerioAPI): PaginationLinks {
+  const next = $('link[rel="next"]').attr('href')?.trim() || null;
+  const prev = $('link[rel="prev"]').attr('href')?.trim() || null;
+  const issues: string[] = [];
+
+  if (next && !prev) {
+    // Could be the first page — only an issue if there's no indication this is page 1
+  }
+  if (prev && !next) {
+    // Last page in a series — normal
+  }
+
+  // Check for multiple rel=next or rel=prev
+  if ($('link[rel="next"]').length > 1) {
+    issues.push('Multiple rel="next" links found. Only one should exist per page.');
+  }
+  if ($('link[rel="prev"]').length > 1) {
+    issues.push('Multiple rel="prev" links found. Only one should exist per page.');
+  }
+
+  // Check for relative URLs (should be absolute)
+  if (next && !next.startsWith('http')) {
+    issues.push(`rel="next" uses a relative URL: "${next}". Use absolute URLs for reliability.`);
+  }
+  if (prev && !prev.startsWith('http')) {
+    issues.push(`rel="prev" uses a relative URL: "${prev}". Use absolute URLs for reliability.`);
+  }
+
+  return { next, prev, issues };
+}
+
 export function getBodyText($: CheerioAPI): string {
   // Remove script, style, nav, footer elements for content analysis
   const clone = $.root().clone();

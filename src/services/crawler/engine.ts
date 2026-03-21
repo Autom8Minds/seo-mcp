@@ -278,6 +278,15 @@ async function runCrawl(
   }
 
   updateCrawlState(crawlId, 'completed');
+
+  // Auto-save crawl to disk
+  try {
+    const { saveCrawl } = await import('./storage.js');
+    saveCrawl(crawlId);
+  } catch {
+    logger.debug(`Could not auto-save crawl ${crawlId}`);
+  }
+
   logger.info(`Crawl ${crawlId} completed: ${pagesCrawled} pages crawled`);
 }
 
@@ -338,6 +347,7 @@ async function crawlPage(
       canonical,
       wordCount,
       contentHash,
+      bodyText,
       internalLinks,
       externalLinks,
       crawledAt: Date.now(),

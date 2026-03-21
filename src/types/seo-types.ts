@@ -14,6 +14,7 @@ export interface PageAnalysis {
   images: ImageSummary;
   links: LinkSummary;
   content?: ContentAnalysis;
+  pagination?: PaginationInfo;
   score: SeoScore;
 }
 
@@ -276,6 +277,12 @@ export interface SeoIssue {
   type: string;
   severity: 'critical' | 'high' | 'medium' | 'low';
   detail: string;
+}
+
+export interface PaginationInfo {
+  next: string | null;
+  prev: string | null;
+  issues: string[];
 }
 
 export type Severity = 'critical' | 'high' | 'medium' | 'low';

@@ -7,6 +7,7 @@ import {
   extractMetaRobots,
   extractOpenGraph,
   extractViewport,
+  extractPagination,
   countWords,
   getBodyText,
 } from '../utils/html-parser.js';
@@ -268,6 +269,7 @@ export async function analyzePage(
   const images = summarizeImages($);
   const links = summarizeLinks($, url);
   const content = includeContent ? analyzeContent($, response.body) : undefined;
+  const pagination = extractPagination($);
 
   const partialAnalysis: PageAnalysis = {
     url,
@@ -283,6 +285,7 @@ export async function analyzePage(
     images,
     links,
     content,
+    pagination: (pagination.next || pagination.prev || pagination.issues.length > 0) ? pagination : undefined,
     score: { overall: 0, breakdown: { title: 0, meta: 0, headings: 0, images: 0, links: 0, technical: 0 } },
   };
 

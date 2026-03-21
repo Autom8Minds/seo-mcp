@@ -8,7 +8,14 @@ import {
   getCrawledPages,
   findDuplicates,
   findRedirectChains,
+  findNearDuplicatePages,
+  findOrphanPages,
+  listCrawlSessions,
+  loadAllSavedCrawls,
+  loadCrawl,
 } from '../services/crawler/storage.js';
+import { compareCrawls } from '../services/crawler/comparator.js';
+import { analyzeSitemap } from '../services/sitemap-analyzer.js';
 import { formatToolError } from '../utils/error-handler.js';
 
 interface ToolResult {
@@ -156,8 +163,16 @@ export async function handleCrawlResults(args: Record<string, unknown>): Promise
 
     if (filter === 'all' || filter === 'duplicates') {
       const duplicates = findDuplicates(crawlId);
-      result.duplicates = duplicates.slice(0, limit);
-      result.totalDuplicateGroups = duplicates.length;
+      const nearDuplicates = findNearDuplicatePages(crawlId);
+      const allDuplicates = [...duplicates, ...nearDuplicates];
+      result.duplicates = allDuplicates.slice(0, limit);
+      result.totalDuplicateGroups = allDuplicates.length;
+    }
+
+    if (filter === 'near-duplicates') {
+      const nearDuplicates = findNearDuplicatePages(crawlId);
+      result.nearDuplicates = nearDuplicates.slice(0, limit);
+      result.totalNearDuplicateGroups = nearDuplicates.length;
     }
 
     if (filter === 'all' || filter === 'redirects') {
@@ -184,6 +199,105 @@ export async function handleCrawlResults(args: Record<string, unknown>): Promise
     }
 
     return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    return formatToolError(error);
+  }
+}
+
+// -- detect_orphan_pages --------------------------------------------------
+
+export async function handleDetectOrphanPages(args: Record<string, unknown>): Promise<ToolResult> {
+  try {
+    const crawlId = args.crawlId as string;
+    const sitemapUrl = args.sitemapUrl as string;
+    if (!crawlId) return formatToolError(new Error('The "crawlId" parameter is required.'));
+    if (!sitemapUrl) return formatToolError(new Error('The "sitemapUrl" parameter is required.'));
+
+    // Try to load crawl from disk if not in memory
+    const session = getCrawlSession(crawlId);
+    if (!session) {
+      loadCrawl(crawlId);
+      if (!getCrawlSession(crawlId)) {
+        return formatToolError(new Error(`No crawl found with ID "${crawlId}".`));
+      }
+    }
+
+    // Fetch sitemap URLs
+    const sitemap = await analyzeSitemap(sitemapUrl, 50000, false);
+    const sitemapUrls = sitemap.urls || [];
+
+    const result = findOrphanPages(crawlId, sitemapUrls);
+
+    return {
+      content: [{
+        type: 'text',
+        text: JSON.stringify({
+          crawlId,
+          sitemapUrl,
+          orphanPages: result.orphanPages.slice(0, 100),
+          totalOrphanPages: result.orphanPages.length,
+          unlistedPages: result.unlistedPages.slice(0, 100),
+          totalUnlistedPages: result.unlistedPages.length,
+          sitemapUrlCount: sitemapUrls.length,
+          crawledUrlCount: result.crawledUrls.length,
+        }, null, 2),
+      }],
+    };
+  } catch (error) {
+    return formatToolError(error);
+  }
+}
+
+// -- compare_crawls -------------------------------------------------------
+
+export async function handleCompareCrawls(args: Record<string, unknown>): Promise<ToolResult> {
+  try {
+    const crawlId1 = args.crawlId1 as string;
+    const crawlId2 = args.crawlId2 as string;
+    if (!crawlId1 || !crawlId2) {
+      return formatToolError(new Error('Both "crawlId1" and "crawlId2" parameters are required.'));
+    }
+
+    // Try loading from disk if not in memory
+    if (!getCrawlSession(crawlId1)) loadCrawl(crawlId1);
+    if (!getCrawlSession(crawlId2)) loadCrawl(crawlId2);
+
+    const comparison = compareCrawls(crawlId1, crawlId2);
+    if (!comparison) {
+      return formatToolError(new Error(`One or both crawls not found: "${crawlId1}", "${crawlId2}".`));
+    }
+
+    return { content: [{ type: 'text', text: JSON.stringify(comparison, null, 2) }] };
+  } catch (error) {
+    return formatToolError(error);
+  }
+}
+
+// -- list_crawls ----------------------------------------------------------
+
+export async function handleListCrawls(_args: Record<string, unknown>): Promise<ToolResult> {
+  try {
+    // Load any saved crawls from disk
+    loadAllSavedCrawls();
+
+    const sessions = listCrawlSessions();
+    const result = sessions.map(s => ({
+      crawlId: s.id,
+      domain: s.domain,
+      seedUrl: s.seedUrl,
+      state: s.state,
+      pagesCrawled: s.stats.pagesCrawled,
+      totalIssues: s.stats.totalIssues,
+      startedAt: new Date(s.startedAt).toISOString(),
+      completedAt: s.completedAt ? new Date(s.completedAt).toISOString() : null,
+    }));
+
+    return {
+      content: [{
+        type: 'text',
+        text: JSON.stringify({ crawls: result, totalCrawls: result.length }, null, 2),
+      }],
+    };
   } catch (error) {
     return formatToolError(error);
   }

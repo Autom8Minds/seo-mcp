@@ -7,6 +7,10 @@
 
 import type { SeoIssue } from '../../types/seo-types.js';
 import { createHash } from 'crypto';
+import { findNearDuplicates, computeSimhash, type NearDuplicateGroup } from '../duplicate-detector.js';
+import { logger } from '../../utils/logger.js';
+import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs';
+import { join } from 'path';
 
 export type CrawlState = 'running' | 'completed' | 'failed' | 'cancelled';
 
@@ -55,6 +59,8 @@ export interface CrawledPage {
   canonical: string | null;
   wordCount: number;
   contentHash: string;
+  simhash?: string;
+  bodyText?: string;
   internalLinks: string[];
   externalLinks: string[];
   issues: SeoIssue[];
@@ -64,7 +70,15 @@ export interface CrawledPage {
 export interface DuplicateGroup {
   hash: string;
   urls: string[];
-  type: 'exact-content' | 'duplicate-title' | 'duplicate-description' | 'duplicate-h1';
+  similarity?: number;
+  type: 'exact-content' | 'near-duplicate' | 'duplicate-title' | 'duplicate-description' | 'duplicate-h1';
+}
+
+export interface OrphanPageResult {
+  orphanPages: string[];
+  unlistedPages: string[];
+  sitemapUrls: string[];
+  crawledUrls: string[];
 }
 
 export interface RedirectChainInfo {
@@ -271,6 +285,116 @@ export function findRedirectChains(crawlId: string): RedirectChainInfo[] {
   return chains;
 }
 
+export function findNearDuplicatePages(crawlId: string, threshold: number = 85): DuplicateGroup[] {
+  const crawledPages = getCrawledPages(crawlId);
+  const pagesWithContent = crawledPages
+    .filter(p => p.bodyText && p.wordCount > 50)
+    .map(p => ({ url: p.url, bodyText: p.bodyText! }));
+
+  const nearDups = findNearDuplicates(pagesWithContent, threshold);
+  return nearDups.map(g => ({
+    hash: '',
+    urls: g.urls,
+    similarity: g.similarity,
+    type: 'near-duplicate' as const,
+  }));
+}
+
+export function findOrphanPages(crawlId: string, sitemapUrls: string[]): OrphanPageResult {
+  const crawledPages = getCrawledPages(crawlId);
+  const crawledUrlSet = new Set(crawledPages.map(p => p.url));
+  const sitemapUrlSet = new Set(sitemapUrls);
+
+  const orphanPages = sitemapUrls.filter(url => !crawledUrlSet.has(url));
+  const unlistedPages = crawledPages
+    .map(p => p.url)
+    .filter(url => !sitemapUrlSet.has(url));
+
+  return {
+    orphanPages,
+    unlistedPages,
+    sitemapUrls,
+    crawledUrls: Array.from(crawledUrlSet),
+  };
+}
+
 export function listCrawlSessions(): CrawlSession[] {
   return Array.from(sessions.values()).sort((a, b) => b.startedAt - a.startedAt);
+}
+
+// ── Persistence ──────────────────────────────────────────────────────
+
+const CRAWL_DATA_DIR = process.env.SEO_CRAWL_DIR || './data/crawls';
+
+function ensureCrawlDir(): void {
+  if (!existsSync(CRAWL_DATA_DIR)) {
+    mkdirSync(CRAWL_DATA_DIR, { recursive: true });
+  }
+}
+
+export function saveCrawl(crawlId: string): boolean {
+  const session = sessions.get(crawlId);
+  const pageMap = pages.get(crawlId);
+  if (!session || !pageMap) return false;
+
+  ensureCrawlDir();
+
+  const data = {
+    session,
+    pages: Array.from(pageMap.values()).map(p => {
+      // Don't persist bodyText to save space
+      const { bodyText, ...rest } = p;
+      return rest;
+    }),
+  };
+
+  const filePath = join(CRAWL_DATA_DIR, `${crawlId}.json`);
+  writeFileSync(filePath, JSON.stringify(data), 'utf-8');
+  logger.info(`Crawl ${crawlId} saved to ${filePath}`);
+  return true;
+}
+
+export function loadCrawl(crawlId: string): boolean {
+  const filePath = join(CRAWL_DATA_DIR, `${crawlId}.json`);
+  if (!existsSync(filePath)) return false;
+
+  try {
+    const raw = readFileSync(filePath, 'utf-8');
+    const data = JSON.parse(raw) as { session: CrawlSession; pages: CrawledPage[] };
+
+    sessions.set(crawlId, data.session);
+    const pageMap = new Map<string, CrawledPage>();
+    for (const page of data.pages) {
+      pageMap.set(page.url, page);
+    }
+    pages.set(crawlId, pageMap);
+
+    logger.info(`Crawl ${crawlId} loaded from ${filePath}`);
+    return true;
+  } catch (error) {
+    logger.error(`Failed to load crawl ${crawlId}:`, error);
+    return false;
+  }
+}
+
+export function listSavedCrawls(): string[] {
+  ensureCrawlDir();
+  try {
+    const { readdirSync } = require('fs');
+    const files = readdirSync(CRAWL_DATA_DIR) as string[];
+    return files
+      .filter((f: string) => f.endsWith('.json'))
+      .map((f: string) => f.replace('.json', ''));
+  } catch {
+    return [];
+  }
+}
+
+export function loadAllSavedCrawls(): void {
+  const savedIds = listSavedCrawls();
+  for (const id of savedIds) {
+    if (!sessions.has(id)) {
+      loadCrawl(id);
+    }
+  }
 }

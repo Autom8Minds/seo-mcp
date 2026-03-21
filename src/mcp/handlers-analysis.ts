@@ -15,6 +15,7 @@ import { analyzeSitemap } from '../services/sitemap-analyzer.js';
 import { analyzeSecurityHeaders } from '../services/security-analyzer.js';
 import { analyzeUrlStructure } from '../services/url-analyzer.js';
 import { analyzeHreflang } from '../services/hreflang-analyzer.js';
+import { analyzeAccessibility } from '../services/accessibility-analyzer.js';
 import { formatToolError } from '../utils/error-handler.js';
 
 /** Standard MCP tool result shape. */
@@ -214,6 +215,23 @@ export async function handleValidateHreflang(args: Record<string, unknown>): Pro
       (args.checkReturnLinks as boolean) ?? true,
       (args.maxReturnChecks as number) ?? 10,
     );
+
+    return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    return formatToolError(error);
+  }
+}
+
+// -- audit_accessibility --------------------------------------------------
+
+export async function handleAuditAccessibility(args: Record<string, unknown>): Promise<ToolResult> {
+  try {
+    const url = args.url as string;
+    if (!url) {
+      return formatToolError(new Error('The "url" parameter is required.'));
+    }
+
+    const result = await analyzeAccessibility(url);
 
     return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
   } catch (error) {

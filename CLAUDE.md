@@ -1,6 +1,6 @@
 # seo-mcp
 
-MCP server providing 25 SEO tools for analysis, performance, research, Google Search Console, generation, and site crawling.
+MCP server providing 29 SEO tools for analysis, accessibility, performance, research, Google Search Console, generation, and site crawling.
 
 ## Architecture
 
@@ -27,12 +27,12 @@ MCP server providing 25 SEO tools for analysis, performance, research, Google Se
 
 | Category | Tools | API Keys |
 |----------|-------|----------|
-| Analysis (10) | analyze_page, analyze_headings, analyze_images, analyze_internal_links, extract_schema, analyze_robots_txt, analyze_sitemap, audit_security_headers, analyze_url_structure, validate_hreflang | None |
+| Analysis (11) | analyze_page, analyze_headings, analyze_images, analyze_internal_links, extract_schema, analyze_robots_txt, analyze_sitemap, audit_security_headers, analyze_url_structure, validate_hreflang, audit_accessibility | None |
 | Performance (2) | check_core_web_vitals, check_mobile_friendly | Optional PAGESPEED_API_KEY |
 | Research (4) | research_keywords, analyze_serp, analyze_backlinks, analyze_domain_authority | DATAFORSEO_LOGIN/PASSWORD |
 | GSC (3) | gsc_performance, gsc_index_coverage, gsc_sitemaps | GSC_CLIENT_ID/SECRET/TOKEN |
 | Generation (3) | generate_schema, generate_robots_txt, generate_meta_suggestions | None |
-| Crawler (3) | crawl_site, crawl_status, crawl_results | None |
+| Crawler (6) | crawl_site, crawl_status, crawl_results, detect_orphan_pages, compare_crawls, list_crawls | None |
 
 ## Build & Test
 
