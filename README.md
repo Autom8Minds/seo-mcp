@@ -15,7 +15,7 @@ Add to your `.mcp.json`:
   "mcpServers": {
     "seo-mcp": {
       "command": "npx",
-      "args": ["-y", "seo-mcp"]
+      "args": ["-y", "@autom8minds/seo-mcp"]
     }
   }
 }
@@ -30,7 +30,7 @@ Add to your `claude_desktop_config.json`:
   "mcpServers": {
     "seo-mcp": {
       "command": "npx",
-      "args": ["-y", "seo-mcp"]
+      "args": ["-y", "@autom8minds/seo-mcp"]
     }
   }
 }
