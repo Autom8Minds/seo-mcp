@@ -12,6 +12,9 @@ import { analyzeLinks } from '../services/link-analyzer.js';
 import { extractSchema } from '../services/schema-extractor.js';
 import { analyzeRobotsTxt } from '../services/robots-analyzer.js';
 import { analyzeSitemap } from '../services/sitemap-analyzer.js';
+import { analyzeSecurityHeaders } from '../services/security-analyzer.js';
+import { analyzeUrlStructure } from '../services/url-analyzer.js';
+import { analyzeHreflang } from '../services/hreflang-analyzer.js';
 import { formatToolError } from '../utils/error-handler.js';
 
 /** Standard MCP tool result shape. */
@@ -152,6 +155,64 @@ export async function handleAnalyzeSitemap(args: Record<string, unknown>): Promi
       url,
       (args.maxUrls as number) ?? 1000,
       (args.checkUrls as boolean) ?? false,
+    );
+
+    return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    return formatToolError(error);
+  }
+}
+
+// -- audit_security_headers -----------------------------------------------
+
+export async function handleAuditSecurityHeaders(args: Record<string, unknown>): Promise<ToolResult> {
+  try {
+    const url = args.url as string;
+    if (!url) {
+      return formatToolError(new Error('The "url" parameter is required.'));
+    }
+
+    const result = await analyzeSecurityHeaders(
+      url,
+      (args.checkMixedContent as boolean) ?? true,
+    );
+
+    return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    return formatToolError(error);
+  }
+}
+
+// -- analyze_url_structure ------------------------------------------------
+
+export async function handleAnalyzeUrlStructure(args: Record<string, unknown>): Promise<ToolResult> {
+  try {
+    const url = args.url as string;
+    if (!url) {
+      return formatToolError(new Error('The "url" parameter is required.'));
+    }
+
+    const result = analyzeUrlStructure(url);
+
+    return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    return formatToolError(error);
+  }
+}
+
+// -- validate_hreflang ----------------------------------------------------
+
+export async function handleValidateHreflang(args: Record<string, unknown>): Promise<ToolResult> {
+  try {
+    const url = args.url as string;
+    if (!url) {
+      return formatToolError(new Error('The "url" parameter is required.'));
+    }
+
+    const result = await analyzeHreflang(
+      url,
+      (args.checkReturnLinks as boolean) ?? true,
+      (args.maxReturnChecks as number) ?? 10,
     );
 
     return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };

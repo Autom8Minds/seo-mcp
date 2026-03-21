@@ -1,11 +1,12 @@
 # seo-mcp
 
-MCP server providing 19 SEO tools for analysis, performance, research, Google Search Console, and generation.
+MCP server providing 25 SEO tools for analysis, performance, research, Google Search Console, generation, and site crawling.
 
 ## Architecture
 
 - `src/mcp/` - MCP server, tool definitions, and handler dispatch
 - `src/services/` - Business logic for each tool category
+- `src/services/crawler/` - Site crawler engine (BFS, frontier queue, in-memory storage)
 - `src/utils/` - HTTP client, HTML/XML parsers, caching, rate limiting
 - `src/config/` - API keys and defaults
 - `src/types/` - TypeScript type definitions
@@ -20,16 +21,18 @@ MCP server providing 19 SEO tools for analysis, performance, research, Google Se
 - Research/GSC handlers check API key availability before calling services
 - Rate limiting via token bucket (`RateLimiter`)
 - Response caching via LRU cache
+- Crawler uses async job pattern: `crawl_site` returns ID, `crawl_status` polls, `crawl_results` retrieves
 
 ## Tool Categories
 
 | Category | Tools | API Keys |
 |----------|-------|----------|
-| Analysis (7) | analyze_page, analyze_headings, analyze_images, analyze_internal_links, extract_schema, analyze_robots_txt, analyze_sitemap | None |
+| Analysis (10) | analyze_page, analyze_headings, analyze_images, analyze_internal_links, extract_schema, analyze_robots_txt, analyze_sitemap, audit_security_headers, analyze_url_structure, validate_hreflang | None |
 | Performance (2) | check_core_web_vitals, check_mobile_friendly | Optional PAGESPEED_API_KEY |
 | Research (4) | research_keywords, analyze_serp, analyze_backlinks, analyze_domain_authority | DATAFORSEO_LOGIN/PASSWORD |
 | GSC (3) | gsc_performance, gsc_index_coverage, gsc_sitemaps | GSC_CLIENT_ID/SECRET/TOKEN |
 | Generation (3) | generate_schema, generate_robots_txt, generate_meta_suggestions | None |
+| Crawler (3) | crawl_site, crawl_status, crawl_results | None |
 
 ## Build & Test
 

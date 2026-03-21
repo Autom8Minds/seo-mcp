@@ -1,7 +1,7 @@
 /**
  * Main MCP server setup for seo-mcp.
  *
- * Creates an MCP Server instance, registers all 20 tool definitions,
+ * Creates an MCP Server instance, registers all 25 tool definitions,
  * and wires up tool-call handlers that route to the appropriate handler
  * functions. Exported as `createServer()` for use by the CLI entry point
  * and the library root.
@@ -24,6 +24,7 @@ import { performanceTools } from './tools-performance.js';
 import { researchTools } from './tools-research.js';
 import { gscTools } from './tools-gsc.js';
 import { generationTools } from './tools-generation.js';
+import { crawlerTools } from './tools-crawler.js';
 
 // ── Handlers ────────────────────────────────────────────────────────────
 import {
@@ -34,7 +35,16 @@ import {
   handleExtractSchema,
   handleAnalyzeRobotsTxt,
   handleAnalyzeSitemap,
+  handleAuditSecurityHeaders,
+  handleAnalyzeUrlStructure,
+  handleValidateHreflang,
 } from './handlers-analysis.js';
+
+import {
+  handleCrawlSite,
+  handleCrawlStatus,
+  handleCrawlResults,
+} from './handlers-crawler.js';
 
 import {
   handleCheckCoreWebVitals,
@@ -68,6 +78,7 @@ const allTools: Tool[] = [
   ...researchTools,
   ...gscTools,
   ...generationTools,
+  ...crawlerTools,
 ];
 
 // ── Handler dispatch map ────────────────────────────────────────────────
@@ -106,6 +117,16 @@ const handlers: Record<string, HandlerFn> = {
   generate_schema: handleGenerateSchema,
   generate_robots_txt: handleGenerateRobotsTxt,
   generate_meta_suggestions: handleGenerateMetaSuggestions,
+
+  // Analysis (new)
+  audit_security_headers: handleAuditSecurityHeaders,
+  analyze_url_structure: handleAnalyzeUrlStructure,
+  validate_hreflang: handleValidateHreflang,
+
+  // Crawler
+  crawl_site: handleCrawlSite,
+  crawl_status: handleCrawlStatus,
+  crawl_results: handleCrawlResults,
 };
 
 // ── Server factory ──────────────────────────────────────────────────────

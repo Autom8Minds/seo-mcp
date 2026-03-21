@@ -72,6 +72,12 @@ export interface LinkSummary {
 export interface ContentAnalysis {
   wordCount: number;
   readabilityScore: number;
+  fleschKincaidGrade?: number;
+  fleschReadingEase?: number;
+  textToHtmlRatio?: number;
+  isThinContent?: boolean;
+  sentenceCount?: number;
+  avgWordsPerSentence?: number;
 }
 
 export interface SeoScore {

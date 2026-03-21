@@ -190,15 +190,58 @@ function summarizeLinks($: CheerioAPI, pageUrl: string): LinkSummary {
   return { internal, external, nofollow };
 }
 
-function analyzeContent($: CheerioAPI): ContentAnalysis {
+function countSyllables(word: string): number {
+  word = word.toLowerCase().replace(/[^a-z]/g, '');
+  if (word.length <= 3) return 1;
+  word = word.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '');
+  word = word.replace(/^y/, '');
+  const matches = word.match(/[aeiouy]{1,2}/g);
+  return matches ? matches.length : 1;
+}
+
+function analyzeContent($: CheerioAPI, rawHtml?: string): ContentAnalysis {
   const bodyText = getBodyText($);
   const wordCount = countWords(bodyText);
-  const avgSentenceLength = bodyText.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
-  const readabilityScore = avgSentenceLength > 0
-    ? Math.min(100, Math.max(0, 100 - Math.abs(wordCount / avgSentenceLength - 15) * 3))
+  const sentences = bodyText.split(/[.!?]+/).filter(s => s.trim().length > 0);
+  const sentenceCount = sentences.length;
+  const avgWordsPerSentence = sentenceCount > 0 ? wordCount / sentenceCount : 0;
+
+  // Flesch-Kincaid calculations
+  const words = bodyText.split(/\s+/).filter(w => w.length > 0);
+  const totalSyllables = words.reduce((sum, w) => sum + countSyllables(w), 0);
+  const avgSyllablesPerWord = wordCount > 0 ? totalSyllables / wordCount : 0;
+
+  // Flesch Reading Ease: 206.835 - 1.015 * ASL - 84.6 * ASW
+  const fleschReadingEase = wordCount > 0 && sentenceCount > 0
+    ? Math.round(Math.max(0, Math.min(100, 206.835 - 1.015 * avgWordsPerSentence - 84.6 * avgSyllablesPerWord)))
     : 0;
 
-  return { wordCount, readabilityScore: Math.round(readabilityScore) };
+  // Flesch-Kincaid Grade Level: 0.39 * ASL + 11.8 * ASW - 15.59
+  const fleschKincaidGrade = wordCount > 0 && sentenceCount > 0
+    ? Math.round((0.39 * avgWordsPerSentence + 11.8 * avgSyllablesPerWord - 15.59) * 10) / 10
+    : 0;
+
+  // Text-to-HTML ratio
+  const htmlLength = rawHtml ? rawHtml.length : 0;
+  const textLength = bodyText.length;
+  const textToHtmlRatio = htmlLength > 0 ? Math.round((textLength / htmlLength) * 100 * 10) / 10 : 0;
+
+  // Thin content detection
+  const isThinContent = wordCount < SEO_RULES.content.thinContentThreshold;
+
+  // Overall readability score (0-100)
+  const readabilityScore = fleschReadingEase;
+
+  return {
+    wordCount,
+    readabilityScore,
+    fleschKincaidGrade,
+    fleschReadingEase,
+    textToHtmlRatio,
+    isThinContent,
+    sentenceCount,
+    avgWordsPerSentence: Math.round(avgWordsPerSentence * 10) / 10,
+  };
 }
 
 export async function analyzePage(
@@ -224,7 +267,7 @@ export async function analyzePage(
   const headings = summarizeHeadings($);
   const images = summarizeImages($);
   const links = summarizeLinks($, url);
-  const content = includeContent ? analyzeContent($) : undefined;
+  const content = includeContent ? analyzeContent($, response.body) : undefined;
 
   const partialAnalysis: PageAnalysis = {
     url,

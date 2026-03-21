@@ -1,8 +1,9 @@
 /**
  * Analysis tool definitions for the SEO MCP server.
  *
- * Seven tools covering on-page SEO analysis: full page audit, headings,
- * images, internal links, structured data extraction, robots.txt, and sitemaps.
+ * Ten tools covering on-page SEO analysis: full page audit, headings,
+ * images, internal links, structured data extraction, robots.txt, sitemaps,
+ * security headers, URL structure, and hreflang validation.
  */
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
@@ -224,6 +225,90 @@ export const analysisTools: Tool[] = [
           type: 'boolean',
           description: 'When true, issue HEAD requests to a sample of sitemap URLs to verify they return 200.',
           default: false,
+        },
+      },
+      required: ['url'],
+      additionalProperties: false,
+    },
+    annotations: {
+      readOnlyHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
+  },
+
+  // ── audit_security_headers ──────────────────────────────────────────
+  {
+    name: 'audit_security_headers',
+    description:
+      'Audit HTTP security headers for a URL. Checks HSTS, Content-Security-Policy, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, and detects mixed content (HTTP resources on HTTPS pages). Returns per-header status and an overall security score.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        url: {
+          type: 'string',
+          description: 'The fully-qualified URL to audit.',
+        },
+        checkMixedContent: {
+          type: 'boolean',
+          description: 'When true, scan the HTML for HTTP resources loaded on HTTPS pages.',
+          default: true,
+        },
+      },
+      required: ['url'],
+      additionalProperties: false,
+    },
+    annotations: {
+      readOnlyHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
+  },
+
+  // ── analyze_url_structure ───────────────────────────────────────────
+  {
+    name: 'analyze_url_structure',
+    description:
+      'Analyze a URL for SEO best practices. Checks length, depth, HTTPS, uppercase letters, underscores vs hyphens, non-ASCII characters, query parameters, file extensions, double slashes, and trailing slash consistency. Returns per-check results and a score.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        url: {
+          type: 'string',
+          description: 'The URL to analyze.',
+        },
+      },
+      required: ['url'],
+      additionalProperties: false,
+    },
+    annotations: {
+      readOnlyHint: true,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
+  },
+
+  // ── validate_hreflang ───────────────────────────────────────────────
+  {
+    name: 'validate_hreflang',
+    description:
+      'Validate hreflang link elements on a page for international SEO. Checks language code format (ISO 639-1), x-default presence, self-referencing tags, duplicate codes, and optionally verifies that target pages link back (return link validation).',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        url: {
+          type: 'string',
+          description: 'The fully-qualified URL to validate hreflang tags for.',
+        },
+        checkReturnLinks: {
+          type: 'boolean',
+          description: 'When true, fetch each hreflang target and verify it links back. Slower but catches missing bidirectional links.',
+          default: true,
+        },
+        maxReturnChecks: {
+          type: 'number',
+          description: 'Maximum number of return link checks to perform. Defaults to 10.',
+          default: 10,
         },
       },
       required: ['url'],
