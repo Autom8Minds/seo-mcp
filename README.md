@@ -1,8 +1,8 @@
 # seo-mcp
 
-An open-source MCP (Model Context Protocol) server that turns Claude into a full SEO consultant. Provides 19 tools for page analysis, Core Web Vitals, structured data validation, keyword research, backlink analysis, and more.
+An open-source MCP (Model Context Protocol) server that turns Claude into a full SEO consultant. Provides 25 tools for page analysis, security auditing, site crawling, Core Web Vitals, structured data validation, keyword research, backlink analysis, and more.
 
-**12 of 19 tools work with zero API keys** - just install and start analyzing.
+**19 of 25 tools work with zero API keys** - just install and start analyzing.
 
 ## Quick Start
 
@@ -54,17 +54,20 @@ npm start
 
 ## Tools
 
-### Category A: Page Analysis (7 tools, no API key needed)
+### Category A: Page Analysis (10 tools, no API key needed)
 
 | Tool | Description |
 |------|-------------|
-| `analyze_page` | Full on-page SEO audit with 0-100 score |
+| `analyze_page` | Full on-page SEO audit with 0-100 score (includes Flesch-Kincaid readability, text-to-HTML ratio, thin content detection) |
 | `analyze_headings` | H1-H6 structure and hierarchy validation |
 | `analyze_images` | Alt text, file size, format, lazy loading audit |
 | `analyze_internal_links` | Link mapping, anchor text analysis, broken link detection |
 | `extract_schema` | JSON-LD/Microdata extraction and Google validation |
 | `analyze_robots_txt` | Parse and test robots.txt rules |
 | `analyze_sitemap` | XML sitemap validation and URL analysis |
+| `audit_security_headers` | HSTS, CSP, X-Frame-Options, mixed content detection |
+| `analyze_url_structure` | URL length, depth, uppercase, underscores, parameters |
+| `validate_hreflang` | Hreflang language codes, x-default, return link verification |
 
 ### Category B: Performance (2 tools, free API)
 
@@ -98,6 +101,14 @@ npm start
 | `generate_robots_txt` | Generate robots.txt from config |
 | `generate_meta_suggestions` | Optimized title/meta/OG suggestions |
 
+### Category F: Site Crawler (3 tools, no API key needed)
+
+| Tool | Description |
+|------|-------------|
+| `crawl_site` | Start a BFS site crawl — returns crawl ID immediately |
+| `crawl_status` | Check crawl progress (pages crawled/queued/errored) |
+| `crawl_results` | Retrieve aggregated issues, duplicates, redirect chains, per-page data |
+
 ## API Keys
 
 Most tools work out of the box. Optional API keys unlock additional features:
@@ -120,10 +131,13 @@ cp .env.example .env
 Once connected, ask Claude:
 
 - "Analyze the SEO of https://example.com"
+- "Crawl my site and find all SEO issues"
+- "Check the security headers on my site"
 - "Check the Core Web Vitals for my homepage"
 - "Extract and validate the structured data on this product page"
 - "Generate FAQ schema for these questions"
 - "Analyze my heading structure and check for keyword presence"
+- "Validate the hreflang tags on my international pages"
 - "Is my robots.txt blocking important pages?"
 
 ## Companion: seo-skills

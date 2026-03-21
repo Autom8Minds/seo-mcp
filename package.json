@@ -1,7 +1,7 @@
 {
   "name": "seo-mcp",
   "version": "1.0.0",
-  "description": "MCP server for SEO analysis, auditing, and optimization. Provides tools for page analysis, Core Web Vitals, schema validation, keyword research, and more.",
+  "description": "MCP server with 25 SEO tools: page analysis, site crawling, security auditing, Core Web Vitals, schema validation, keyword research, backlinks, and more.",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
@@ -30,7 +30,10 @@
     "schema-markup",
     "structured-data",
     "backlinks",
-    "keyword-research"
+    "keyword-research",
+    "site-crawler",
+    "security-headers",
+    "hreflang"
   ],
   "author": {
     "name": "Anurag Kalita",
