@@ -1,7 +1,7 @@
 {
   "name": "@autom8minds/seo-mcp",
-  "version": "1.2.0",
-  "description": "MCP server with 25 SEO tools: page analysis, site crawling, security auditing, Core Web Vitals, schema validation, keyword research, backlinks, and more.",
+  "version": "1.2.1",
+  "description": "MCP server with 29 SEO tools: page analysis, accessibility, site crawling, near-duplicate detection, orphan pages, crawl comparison, Core Web Vitals, schema validation, keyword research, and more.",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
